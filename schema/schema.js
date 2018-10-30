@@ -1,21 +1,8 @@
 const { GraphQLObjectType, GraphQLString, GraphQLSchema, GraphQLID, GraphQLInt, GraphQLList } = require('graphql')
 const _ = require('lodash')
 
-// dummy data
-const books = [
-  { name: 'Book1', genre: 'Comedy', id: '1', authorId: '1' },
-  { name: 'Book2', genre: 'Fantasy', id: '2', authorId: '2' },
-  { name: 'Book3', genre: 'Drama', id: '3', authorId: '1' },
-  { name: 'Book4', genre: 'Comedy', id: '4', authorId: '3' },
-  { name: 'Book5', genre: 'Horror', id: '5', authorId: '4' }
-]
-
-const authors = [
-  { name: 'Author1', age: 24, id: '1' },
-  { name: 'Author2', age: 25, id: '2' },
-  { name: 'Author3', age: 26, id: '3' },
-  { name: 'Author4', age: 27, id: '4' }
-]
+const Book = require('../models/book')
+const Author = require('../models/author')
 
 const BookType = new GraphQLObjectType({
   name: 'Book',
@@ -26,7 +13,7 @@ const BookType = new GraphQLObjectType({
     author: {
       type: AuthorType,
       resolve (parent, args) {
-        return _.find(authors, { id: parent.authorId })
+        // return _.find(authors, { id: parent.authorId })
       }
     }
   })
@@ -41,7 +28,7 @@ const AuthorType = new GraphQLObjectType({
     books: {
       type: new GraphQLList(BookType),
       resolve (parent, args) {
-        return _.filter(books, { authorId: parent.id })
+        // return _.filter(books, { authorId: parent.id })
       }
     }
   })
@@ -62,24 +49,42 @@ const RootQuery = new GraphQLObjectType({
       type: AuthorType,
       args: { id: { type: GraphQLID } },
       resolve (parent, args) {
-        return _.find(authors, { id: args.id })
+        // return _.find(authors, { id: args.id })
       }
     },
     books: {
       type: new GraphQLList(BookType),
       resolve (parent, args) {
-        return books
+        // return books
       }
     },
     authors: {
       type: new GraphQLList(AuthorType),
       resolve (parent, args) {
-        return authors
+        // return authors
+      }
+    }
+  }
+})
+
+const Mutation = new GraphQLObjectType({
+  name: 'Mutation',
+  fields: {
+    addAuthor: {
+      type: AuthorType,
+      args: {
+        name: { type: GraphQLString },
+        age: { type: GraphQLInt }
+      },
+      resolve (parent, args) {
+        const author = new Author(args)
+        return author.save()
       }
     }
   }
 })
 
 module.exports = new GraphQLSchema({
-  query: RootQuery
+  query: RootQuery,
+  mutation: Mutation
 })
